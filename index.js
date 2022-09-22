@@ -52,7 +52,7 @@ app.get('/', async function(req, res) {
     res.send(users.join(', '));
 });
 
-app.get('/:userName', async function(req, res) {
+app.get('/details/:userName', async function(req, res) {
     const getInterestOnMonthEnd = await calculateInterestOnMonthEnd(req.params.userName);
     res.send('interest calculated '+ getInterestOnMonthEnd +' for ' + req.params.userName)
 })
