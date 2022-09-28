@@ -48,9 +48,18 @@ const calculateInterestOnMonthEnd = async (user) => {
         var amount = 0;
         data.forEach((elem, index) => {
             // balance added or opening date
-            const start_date = new Date(elem.transaction_date)
+            const start_date = new Date(elem.transaction_date);
+
+            var nextTransactionDate = ''
+            if(index+1 < data.length){
+                var nextTransactionDate = data[index+1].transaction_date.split(" ");
+                nextTransactionDate[1] = nextTransactionDate[1]-1;
+                nextTransactionDate = nextTransactionDate.toString();
+            } else {
+                nextTransactionDate = 'January 31'
+            }
             // balance withdraw or closing date
-            const end_date = new Date(index+1 < data.length ? data[index+1].transaction_date : 'January 31')
+            const end_date = new Date(nextTransactionDate)
             const totalDays = (end_date - start_date)/(1000*3600*24)+1;
             if(elem.transaction_type === 'withdraw') {
                 amount -= elem.transaction_amount
