@@ -12,7 +12,7 @@ const getAllUsers = async () => {
         error: ''
     }
 
-    const {data, error} = await supabase.from('user_investment').select('*');
+    const {data, error} = await supabase.from('users').select('*');
     if(!error) {
         const users = [];
         data.forEach((elem) => {
@@ -39,24 +39,24 @@ const calculateInterestOnMonthEnd = async (user) => {
 
     // interest rate 2%
     const interestRate = 0.02;
-    const {data, error} = await supabase.from('user_investment').select('investment').eq('user_name', user);
+    const {data, error} = await supabase.from('transactions').select('*').eq('user_name', user);
     if(data) {
-        console.log(data[0])
+        console.log(data)
         // interest for a specific user
         var interest = 0;
         // balance amount
         var amount = 0;
-        data[0].investment.forEach((elem, index) => {
+        data.forEach((elem, index) => {
             // balance added or opening date
-            const start_date = new Date(elem.start_date)
+            const start_date = new Date(elem.transaction_date)
             // balance withdraw or closing date
-            const end_date = new Date(elem.end_date)
+            const end_date = new Date(index+1 < data.length ? data[index+1].transaction_date : 'January 31')
             const totalDays = (end_date - start_date)/(1000*3600*24)+1;
-            if(elem.action === 'withdraw') {
-                amount -= elem.amount
+            if(elem.transaction_type === 'withdraw') {
+                amount -= elem.transaction_amount
                 interest += (((totalDays)*interestRate)/365)*amount
             } else {
-                amount += elem.amount;
+                amount += elem.transaction_amount;
                 interest += (((totalDays)*interestRate)/365)*amount
             }
         })
