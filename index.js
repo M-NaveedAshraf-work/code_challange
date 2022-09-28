@@ -7,15 +7,36 @@ app.use(express.json());
 
 // get All the users
 const getAllUsers = async () => {
+    let res = {
+        users: [],
+        error: ''
+    }
+
     const {data, error} = await supabase.from('user_investment').select('*');
     if(!error) {
-        console.log(data)
-        return data
+        const users = [];
+        data.forEach((elem) => {
+            users.push(elem.user_name)
+        })
+        res.status = 200;
+        res.users = users;
+        return res
+    } else {
+        res.status = 400;
+        res.error = error.message;
+        return res
     }
 }
 
 
 const calculateInterestOnMonthEnd = async (user) => {
+    
+    let res = {
+        user: user,
+        interest: '',
+        error: ''
+    }
+
     // interest rate 2%
     const interestRate = 0.02;
     const {data, error} = await supabase.from('user_investment').select('investment').eq('user_name', user);
@@ -39,22 +60,30 @@ const calculateInterestOnMonthEnd = async (user) => {
                 interest += (((totalDays)*interestRate)/365)*amount
             }
         })
-        return interest.toFixed(2)
+        res.status = 200;
+        res.interest = interest.toFixed(2);
+        return res
+    } else {
+        if(error) {
+            res.status = 400;
+            res.error = error.message;
+            return res
+        } else {
+            res.status = 400;
+            res.error = 'No data availble for current user';
+            return res
+        }
     }
 }
 
 app.get('/', async function(req, res) {
-    const usersData = await getAllUsers();
-    const users = [];
-    usersData.forEach((elem) => {
-        users.push(elem.user_name)
-    })
-    res.send(users.join(', '));
+    const middleware_res = await getAllUsers();
+    res.json(middleware_res);
 });
 
 app.get('/details/:userName', async function(req, res) {
-    const getInterestOnMonthEnd = await calculateInterestOnMonthEnd(req.params.userName);
-    res.send('interest calculated '+ getInterestOnMonthEnd +' for ' + req.params.userName)
+    const middleware_res = await calculateInterestOnMonthEnd(req.params.userName);
+    res.json(middleware_res)
 })
 
 app.listen(5000, () => {
